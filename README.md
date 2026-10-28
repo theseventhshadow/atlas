@@ -44,3 +44,21 @@ Abre la terminal y situate en la raíz del proyecto y ejecuta el comando:
 	4.3 Database: `atlas`
 	4.4 Nombre de usuario: `postgres`
 	4.5 Contraseña: `postgres`
+
+## Análisis estático con SonarQube
+
+El repositorio incluye `sonarqube/docker-compose.yml` y `sonar-project.properties` para analizar `BACKEND/src` y `FRONTEND/src`.
+
+1. Levanta el servidor SonarQube: `docker-compose -f sonarqube/docker-compose.yml up -d`
+2. Ingresa a `http://localhost:9000` (usuario/contraseña inicial: `admin`/`admin`) y crea el proyecto con la clave `caso-a-backend`.
+3. Genera un token en **My Account > Security**.
+4. Exporta el token como variable de entorno, situado en la raíz del proyecto, y ejecuta el scanner:
+
+```powershell
+$env:SONAR_TOKEN = "tu-token"
+sonar-scanner
+```
+
+> SonarScanner CLI 6.x **no** lee las credenciales desde `sonar-project.properties`, sólo desde la variable de entorno `SONAR_TOKEN`. No escribas el token en ese archivo: es un secreto.
+
+El resultado del último análisis queda documentado en [`sonarqube/REPORTE-SONARQUBE.md`](sonarqube/REPORTE-SONARQUBE.md).
