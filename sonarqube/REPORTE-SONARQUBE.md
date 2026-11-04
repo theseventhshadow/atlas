@@ -5,13 +5,16 @@ Reproduce exactamente el estado publicado en el servidor en la fecha indicada.
 
 | Campo | Valor |
 |---|---|
-| Proyecto | `caso-a-backend` |
+| Proyecto | `caso-a-fullstack` (incluye backend + frontend) |
 | Servidor SonarQube | 9.9.8.100196 (http://localhost:9000) |
-| Dashboard | http://localhost:9000/dashboard?id=caso-a-backend |
-| SonarScanner | SonarScanner CLI 6.2.1.4610 (native, Windows x64) |
-| Fecha de generación del reporte | 28-10-2026, 8:30:13 p. m. |
+| Dashboard | http://localhost:9000/dashboard?id=caso-a-fullstack |
+| SonarScanner | SonarScanner CLI 8.3.1.16491 (imagen Docker `sonarsource/sonar-scanner-cli`, Linux amd64) |
+| Fecha de generación del reporte | 03-11-2026, 4:54 p. m. (UTC-3) |
+| Análisis | ID `AaGi-7ADOyijf8OF93OL` · tarea CE `AaGi-6kQ8to-nVCys27-` |
 | Quality Gate | ✅ Pasado (OK) |
 | Alcance analizado | `BACKEND/src`, `FRONTEND/src` (ver `sonar-project.properties`) |
+
+> **Verificación (03-11-2026):** el proyecto se migró de la clave `caso-a-backend` a `caso-a-fullstack` para reflejar que el análisis cubre backend y frontend. La ejecución sobre el mismo código reproduce exactamente las métricas anteriores: 1 bug, 0 vulnerabilidades, 41 code smells, 3 hotspots y 16,6% de duplicación. Las entradas antiguas se eliminaron del servidor; este reporte conserva su historial.
 
 ## 1. Resumen ejecutivo
 
@@ -149,12 +152,14 @@ Los hotspots **no son hallazgos confirmados**: marcan código donde un humano de
 
 ## 8. Cómo reproducir este análisis
 
+El análisis se ejecutó con el scanner en Docker, conectado a la red del servidor SonarQube:
+
 ```powershell
-$env:SONAR_TOKEN = "<token>"
-sonar-scanner
+$tok = "<token-de-usuario>"
+docker run --rm --network sonarqube_sonar -v "${PWD}:/usr/src" -w /usr/src sonarsource/sonar-scanner-cli:latest "-Dsonar.host.url=http://sonarqube:9000" "-Dsonar.login=$tok" "-Dsonar.projectKey=caso-a-fullstack"
 ```
 
-El token **no** se guarda en `sonar-project.properties`: SonarScanner CLI 6.x solo lo lee desde la variable de entorno `SONAR_TOKEN` (ver README).
+El token se genera en **My Account > Security** y **no** se guarda en `sonar-project.properties`. En esta instalación de SonarQube 9.9 el token debe pasarse con `sonar.login`; el servidor rechaza la autenticación `Bearer` del parámetro `sonar.token`. Si se usa un scanner nativo, también puede exportarse como `SONAR_TOKEN`.
 
 ## 9. Limitaciones del análisis
 
@@ -163,6 +168,7 @@ El token **no** se guarda en `sonar-project.properties`: SonarScanner CLI 6.x so
 - **Sin análisis dinámico:** no se probó la aplicación en ejecución (ver *Análisis dinámico / DAST*).
 - **Lógica de negocio y autorización:** SonarQube no valida si un usuario de una empresa accede a datos de otra; eso requiere pruebas funcionales de autorización.
 - **Secreto expuesto fuera del alcance:** el análisis solo cubre `BACKEND/src` y `FRONTEND/src`; secretos en README/config no se auditan aquí.
+- **Secreto en el código no detectado por las reglas:** la contraseña de PostgreSQL está escrita en `BACKEND/src/db.js:5-6`; SonarQube 9.9 Community no la reporta como vulnerabilidad (por eso Security = A). Se identificó por revisión manual: debe sacarse del código y rotarse la credencial.
 
 ## 10. Acciones recomendadas (priorizadas)
 
@@ -173,3 +179,14 @@ El token **no** se guarda en `sonar-project.properties`: SonarScanner CLI 6.x so
 5. Revisar y resolver los security hotspots marcándolos *Safe*/*Fixed* con justificación.
 6. Agregar pruebas y publicar cobertura (`sonar.javascript.lcov.reportPaths`) para que el indicador de cobertura sea real.
 7. Sacar el `JWT_SECRET` del README y rotarlo.
+8. Sacar la contraseña de PostgreSQL de `BACKEND/src/db.js:5-6`, usar `DATABASE_URL` desde el entorno y rotar la credencial (el análisis actual no la detecta).
+
+## 11. Historial de ejecuciones
+
+| Fecha | Clave del proyecto | Bugs | Vulnerabilidades | Code smells | Hotspots | Duplicación | Quality Gate |
+|---|---|---|---|---|---|---|---|
+| 28-10-2026 | `caso-a-backend` | 1 | 0 | 41 | 3 | 16,6% | ✅ OK |
+| 03-11-2026 | `caso-a-backend` | 1 | 0 | 41 | 3 | 16,6% | ✅ OK |
+| 03-11-2026 | `caso-a-fullstack` | 1 | 0 | 41 | 3 | 16,6% | ✅ OK |
+
+Las dos primeras ejecuciones se realizaron bajo la clave anterior `caso-a-backend`, eliminada del servidor el 03-11-2026. Desde esa fecha el único proyecto es `caso-a-fullstack`, que incluye `BACKEND/src` y `FRONTEND/src`; sus cifras se conservan aquí como historial. No hubo cambios en las métricas entre una y otra.

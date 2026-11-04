@@ -1,0 +1,13 @@
+{
+  "name": "atlas-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:api": "node --test --test-reporter=spec api/cp.test.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1"
+  }
+}

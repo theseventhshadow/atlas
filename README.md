@@ -49,16 +49,16 @@ Abre la terminal y situate en la raíz del proyecto y ejecuta el comando:
 
 El repositorio incluye `sonarqube/docker-compose.yml` y `sonar-project.properties` para analizar `BACKEND/src` y `FRONTEND/src`.
 
-1. Levanta el servidor SonarQube: `docker-compose -f sonarqube/docker-compose.yml up -d`
-2. Ingresa a `http://localhost:9000` (usuario/contraseña inicial: `admin`/`admin`) y crea el proyecto con la clave `caso-a-backend`.
+1. Levanta el servidor SonarQube: `docker compose -f sonarqube/docker-compose.yml up -d`
+2. Ingresa a `http://localhost:9000` (usuario/contraseña inicial: `admin`/`admin`) y crea el proyecto con la clave `caso-a-fullstack` (incluye `BACKEND/src` y `FRONTEND/src`).
 3. Genera un token en **My Account > Security**.
-4. Exporta el token como variable de entorno, situado en la raíz del proyecto, y ejecuta el scanner:
+4. Ejecuta el análisis con el scanner en Docker, desde la raíz del proyecto:
 
 ```powershell
-$env:SONAR_TOKEN = "tu-token"
-sonar-scanner
+$tok = "tu-token"
+docker run --rm --network sonarqube_sonar -v "${PWD}:/usr/src" -w /usr/src sonarsource/sonar-scanner-cli:latest "-Dsonar.host.url=http://sonarqube:9000" "-Dsonar.login=$tok"
 ```
 
-> SonarScanner CLI 6.x **no** lee las credenciales desde `sonar-project.properties`, sólo desde la variable de entorno `SONAR_TOKEN`. No escribas el token en ese archivo: es un secreto.
+> El token **no** se guarda en `sonar-project.properties`: es un secreto. En esta instalación de SonarQube 9.9 se pasa con `sonar.login`; el servidor rechaza la autenticación `Bearer` de `sonar.token`. Si usas un scanner nativo, expórtalo como `SONAR_TOKEN`.
 
 El resultado del último análisis queda documentado en [`sonarqube/REPORTE-SONARQUBE.md`](sonarqube/REPORTE-SONARQUBE.md).

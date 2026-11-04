@@ -9,6 +9,9 @@
     "start-backend": "cd BACKEND && npm run start",
     "start-frontend": "cd FRONTEND && npm run dev",
     "start": "npm run start-backend && npm run start-frontend",
-    "install": "npm run install-backend && npm run install-frontend"
+    "install": "npm run install-backend && npm run install-frontend",
+    "test": "node tests/run-all.mjs",
+    "test:api": "node --test --test-reporter=spec tests/api/cp.test.mjs",
+    "test:e2e": "npm --prefix tests run test:e2e"
   }
 }

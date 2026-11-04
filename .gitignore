@@ -1,3 +1,7 @@
 BACKEND/node_modules
 FRONTEND/node_modules
+tests/node_modules/
+tests/results/
+tests/test-results/
+tests/e2e/screenshots/
 .scannerwork/
